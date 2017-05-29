@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title></title>
+</head>
+<body>
+<script src="./pkgzip.js" ></script>
+<pre id="video"></pre>
+<script>
+var extend = window.pkgzip['extend']
+var sham = window.pkgzip['shamjs']
+
+function createMap (width, height, content) {
+    var map = []
+    for (var lineIndex = 0; lineIndex<width; lineIndex++) {
+        var line = []
+        for(var rowIndex = 0; rowIndex<height; rowIndex++) {
+            line.push(content)
+        }
+        map.push(line)
+    }
+    return map
+}
+
+function mapToString (map, border) {
+    var rowNumber
+    var lineCode = []
+    var output = map.map(function (item) {
+        item = [border].concat(item).concat([border])
+        if (!rowNumber) {
+            rowNumber = item.length
+        }
+        return item.join(' ')
+    }).join('\n')
+    var topBottomBorder = new Array(rowNumber).fill(border).join(' ')
+    output = topBottomBorder + '\n' + output + '\n' + topBottomBorder
+    return output
+}
+function randomPostion (map) {
+    var flatMap = []
+    var mapRowNumber = map.length
+    var mapColNumber = map[0].length
+    return {
+        x: sham.random.integer(0, mapRowNumber),
+        y: sham.random.integer(0, mapColNumber)
+    }
+}
+function mapToPosition (map) {
+    var data = []
+    map.forEach(function (row, xIndex) {
+        row.forEach(function (col, yIndex) {
+            data.push({
+                x: xIndex,
+                y: yIndex,
+                word: col
+            })
+        })
+    })
+    return data
+}
+function setEmpty (map, newValue, filter) {
+    var positonArray = mapToPosition(map)
+    var emptyPositionArray = positonArray.filter(filter)
+    var randomIndex = sham.random.integer(0, emptyPositionArray.length - 1)
+    var postion = emptyPositionArray[randomIndex]
+    map[postion.x][postion.y] = newValue
+}
+
+</script>
+<script>
+var emptyPlaceholder = ' '
+var boederPlacehoder  = '~'
+var wordMap = 'abcdefghijklmnopqrstuvwxyz@#'.split('')
+
+var shuffle = window.pkgzip['lodash.shuffle']
+var shuffleWord = shuffle(wordMap)
+
+var map = createMap(7, 8, emptyPlaceholder)
+var mapVideo = []
+shuffleWord.forEach(function (word, index) {
+    for (var i = 0; i<2; i++) {
+        setEmpty(map, word, function (data) {
+            return data.word === emptyPlaceholder
+        })
+        mapVideo.push(mapToString(map, boederPlacehoder))
+    }
+})
+var progress = 0
+var eVideo = document.getElementById('video')
+setTimeout(function playVideo() {
+    var text = mapVideo[progress]
+    if (text) {
+        eVideo.innerHTML = mapVideo[progress]
+        progress++
+        setTimeout(playVideo, 10)
+    }
+}, 10)
+</script>
+</body>
+</html>
